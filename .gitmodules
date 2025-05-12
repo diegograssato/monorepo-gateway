@@ -1,0 +1,8 @@
+[submodule "services/payments"]
+	path = services/payments
+	url = https://github.com/diegograssato/nodejs-service.git
+	branch = main
+[submodule "services/profile"]
+	path = services/profile
+	url = https://github.com/diegograssato/nodejs-service.git
+	branch = main
