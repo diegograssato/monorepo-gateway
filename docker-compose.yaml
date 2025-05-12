@@ -1,0 +1,54 @@
+
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:80"
+    environment:
+      - SERVICES=admin:5678:yes:admin/tatus,payments:8080:yes,profile:8080:yes:profile/status
+    depends_on:
+      admin:
+        condition: service_healthy
+      payments:
+        condition: service_healthy        
+      profile:
+        condition: service_healthy        
+
+  payments: 
+    build: ./services/payments
+    expose:
+      - "8080"
+    environment:
+      - NODE_NAME=payments      
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  profile:
+    build: ./services/profile
+    expose:
+      - "8080"
+    environment:
+      - NODE_NAME=profile
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    
+
+  admin:
+    image: hashicorp/http-echo
+    command: ["-text=Hello from admin"]
+    ports:
+      - "8083:5678"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5678"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
