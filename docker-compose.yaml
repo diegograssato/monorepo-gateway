@@ -7,12 +7,39 @@ services:
     environment:
       - SERVICES=admin:5678:yes:admin/tatus,payments:8080:yes,profile:8080:yes:profile/status
     depends_on:
+      jaeger:
+        condition: service_healthy
       admin:
         condition: service_healthy
       payments:
         condition: service_healthy        
       profile:
-        condition: service_healthy        
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s        
+
+  jaeger:
+    image: jaegertracing/jaeger:2.6.0
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    expose:
+      - "9411"
+      - "16686"
+    ports:
+      - "9411:9411" # Collector Port
+      - "16686:16686"  # Web UI
+      - "14268:14268"  # Collector endpoint
+      - "14250:14250"  # gRPC port for agent
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:16686"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   payments: 
     build: ./services/payments
@@ -38,8 +65,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-      start_period: 5s
-    
+      start_period: 5s    
 
   admin:
     image: hashicorp/http-echo

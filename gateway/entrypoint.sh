@@ -44,6 +44,8 @@ for entry in "$@"; do
         location $LOCATION {
             proxy_pass http://$NAME:$PORT/;
             include /etc/nginx/includes/proxy-headers.conf;
+            opentracing_tag "nginx-location" "$LOCATION";
+            opentracing_propagate_context;
             proxy_connect_timeout 1s;
             proxy_read_timeout 1s;
             error_page 502 = /fallback;
@@ -57,6 +59,7 @@ for entry in "$@"; do
         location $LOCATION {
             default_type text/plain;
             return 404 'Service $NAME unavailable';
+            opentracing_tag "nginx-location" "$LOCATION";
             include /etc/nginx/includes/proxy-headers.conf;
             add_header Content-Type text/plain;
             add_header X-Error-Message 'Service $NAME unavailable'; 
